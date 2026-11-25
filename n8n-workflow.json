@@ -1,0 +1,114 @@
+{
+  "name": "Apple Podcasts Charts & Search Scraper to webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "8f4759f1-f2f7-496d-b14d-f3b672641858",
+      "name": "Run every morning",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorInputMode": "json",
+        "actorId": {
+          "__rl": true,
+          "value": "PGgJ8dYAxM5X3zhxv",
+          "mode": "list",
+          "cachedResultName": "evpp/apple-podcasts-charts",
+          "cachedResultUrl": "https://apify.com/evpp/apple-podcasts-charts"
+        },
+        "customBody": "{\n  \"country\": \"us\",\n  \"chart\": \"top\",\n  \"genreId\": \"1488\",\n  \"includeFeedUrl\": true,\n  \"maxItems\": 25\n}",
+        "timeout": 300,
+        "memory": 512,
+        "build": "latest",
+        "authentication": "apifyApi"
+      },
+      "id": "8b62af81-106e-4b3f-b55d-aa21af8d338d",
+      "name": "Run Apple Podcasts Charts & Search Scraper",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        280,
+        0
+      ],
+      "credentials": {
+        "apifyApi": {
+          "name": "<your credential>"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/your-unique-url",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ $json }}",
+        "options": {}
+      },
+      "id": "57b3685f-23bb-45a6-ab8c-ff77a44323aa",
+      "name": "Send results to webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Run every morning": {
+      "main": [
+        [
+          {
+            "node": "Run Apple Podcasts Charts & Search Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Apple Podcasts Charts & Search Scraper": {
+      "main": [
+        [
+          {
+            "node": "Send results to webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    "apify",
+    "web-scraping",
+    "apple-podcasts-charts"
+  ]
+}
