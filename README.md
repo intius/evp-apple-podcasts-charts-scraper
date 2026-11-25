@@ -4,6 +4,8 @@
 
 [![Run on Apify](https://img.shields.io/badge/Run%20on-Apify-orange)](https://apify.com/evpp/apple-podcasts-charts)
 
+[Open the documentation and crawlable sample explorer](https://intius.github.io/evp-labs-data-extractors/actors/apple-podcasts-charts/) for quick inputs, integration links, real sample rows, and ready-made task examples.
+
 ## Why use this Apple Podcasts scraper?
 
 - Export Apple Podcasts data without building or maintaining a custom scraper
@@ -82,6 +84,13 @@ Import `n8n-workflow.json` into n8n, select your Apify credential, replace the w
 | `description` | string | Short show summary when provided by the source feed |
 | `episodeCount` | integer | Number of episodes reported by iTunes Lookup |
 | `contentAdvisoryRating` | string | Apple content advisory rating (e.g. Clean, Explict) |
+| `hostEmail` | string | Public host/owner contact email extracted from the podcast RSS feed when available |
+| `websiteUrl` | string | Podcast website URL from the RSS channel link |
+| `ownerName` | string | Owner or host name from the RSS itunes:owner metadata |
+| `latestEpisodeDate` | string | ISO timestamp of the newest episode in the RSS feed |
+| `latestEpisodeTitle` | string | Title of the newest episode in the RSS feed |
+| `avgDaysBetweenEpisodes` | number | Average days between recent episodes, calculated from up to 10 latest RSS items |
+| `hasSponsorMention` | boolean | True when recent episode text mentions sponsor reads, promo codes, or discount codes |
 | `rank` | integer | 1-based position in the chart (chart mode only) |
 | `searchQuery` | string | Search term that produced this item (search mode only) |
 | `country` | string | Storefront country code the item was scraped from |

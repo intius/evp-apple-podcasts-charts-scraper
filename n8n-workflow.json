@@ -13,7 +13,7 @@
           ]
         }
       },
-      "id": "3fa29c8c-f728-4986-b49b-5cc44f1ad26b",
+      "id": "373a523b-8c87-407a-b41c-14f42f7edb50",
       "name": "Run every morning",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -41,7 +41,7 @@
         "build": "latest",
         "authentication": "apifyApi"
       },
-      "id": "e5a0d4f3-8934-42fc-be26-d4f011238c0c",
+      "id": "aa99edcc-de8d-41b2-a886-5cd6c36c8f8d",
       "name": "Run Apple Podcasts Charts & Search Scraper",
       "type": "@apify/n8n-nodes-apify.apify",
       "typeVersion": 1,
@@ -64,7 +64,7 @@
         "jsonBody": "={{ $json }}",
         "options": {}
       },
-      "id": "9d857125-c08e-4f24-b145-2b91f8eaa834",
+      "id": "5a28e6d4-386e-4f6c-90d9-d5f550ecbed1",
       "name": "Send results to webhook",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
