@@ -1,26 +1,36 @@
 {
-  "name": "Apple Podcasts Charts & Search Scraper to webhook",
+  "name": "Top Apple Podcasts Charts with RSS Host Emails to Google Sheets (Apify)",
   "nodes": [
+    {
+      "parameters": {
+        "content": "## Apple Podcasts Outreach & Sponsor Leads\n\nPulls Apple Podcasts top charts by country & genre via `evpp/apple-podcasts-charts`, parses each show's RSS feed for `<itunes:email>`, website URL, episode cadence, and sponsor mentions, keeps shows with a contact email, and upserts clean outreach rows into Google Sheets.\n\n### Setup (2 minutes)\n1. Connect your **Apify API** credential on `Scrape Apple Podcasts`.\n2. Pick `country` (`us`, `gb`, `ca`, `au`), `genreId` (`1321` = Business, `1318` = Technology, `1488` = True Crime), and `maxItems`.\n3. Connect **Google Sheets** and select your spreadsheet.",
+        "height": 300,
+        "width": 420
+      },
+      "id": "ap-note-1",
+      "name": "Setup Guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-260, -240]
+    },
     {
       "parameters": {
         "rule": {
           "interval": [
             {
-              "field": "days",
-              "triggerAtHour": 8,
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 10,
               "triggerAtMinute": 0
             }
           ]
         }
       },
-      "id": "f40c1f74-b858-434e-bca3-9d2048102233",
-      "name": "Run every morning",
+      "id": "ap-trigger-1",
+      "name": "Weekly Monday 10 AM",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        0,
-        0
-      ]
+      "position": [-200, 140]
     },
     {
       "parameters": {
@@ -35,80 +45,102 @@
           "cachedResultName": "evpp/apple-podcasts-charts",
           "cachedResultUrl": "https://apify.com/evpp/apple-podcasts-charts"
         },
-        "customBody": "{\n  \"country\": \"us\",\n  \"chart\": \"top\",\n  \"genreId\": \"1488\",\n  \"includeFeedUrl\": true,\n  \"maxItems\": 25\n}",
+        "customBody": "{\n  \"country\": \"us\",\n  \"chart\": \"top\",\n  \"genreId\": \"1321\",\n  \"includeFeedUrl\": true,\n  \"enrichFromRss\": true,\n  \"maxItems\": 50\n}",
         "timeout": 300,
         "memory": 512,
         "build": "latest",
         "authentication": "apifyApi"
       },
-      "id": "9c603262-7bdf-4137-8365-7b90b98e605f",
-      "name": "Run Apple Podcasts Charts & Search Scraper",
+      "id": "ap-apify-1",
+      "name": "Scrape Apple Podcasts",
       "type": "@apify/n8n-nodes-apify.apify",
       "typeVersion": 1,
-      "position": [
-        280,
-        0
-      ],
+      "position": [60, 140],
       "credentials": {
         "apifyApi": {
-          "name": "<your credential>"
+          "name": "Apify API"
         }
       }
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://webhook.site/your-unique-url",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json }}",
-        "options": {}
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "has-host-email",
+              "leftValue": "={{ $json.hostEmail || '' }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
       },
-      "id": "3152a1b2-106e-4998-92f3-5597e5bd9424",
-      "name": "Send results to webhook",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        560,
-        0
-      ]
+      "id": "ap-filter-1",
+      "name": "Keep Shows With Host Email",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [320, 140]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "p1", "name": "rank", "value": "={{ $json.rank ?? '' }}", "type": "string" },
+            { "id": "p2", "name": "podcast_name", "value": "={{ $json.name }}", "type": "string" },
+            { "id": "p3", "name": "owner_or_artist", "value": "={{ $json.ownerName || $json.artistName || '' }}", "type": "string" },
+            { "id": "p4", "name": "host_email", "value": "={{ $json.hostEmail || '' }}", "type": "string" },
+            { "id": "p5", "name": "website", "value": "={{ $json.websiteUrl || '' }}", "type": "string" },
+            { "id": "p6", "name": "genre", "value": "={{ $json.primaryGenre || '' }}", "type": "string" },
+            { "id": "p7", "name": "episodes", "value": "={{ $json.episodeCount ?? '' }}", "type": "string" },
+            { "id": "p8", "name": "latest_episode", "value": "={{ $json.latestEpisodeDate || '' }}", "type": "string" },
+            { "id": "p9", "name": "has_sponsors", "value": "={{ Boolean($json.hasSponsorMention) }}", "type": "boolean" },
+            { "id": "p10", "name": "rss_feed", "value": "={{ $json.feedUrl || '' }}", "type": "string" }
+          ]
+        }
+      },
+      "id": "ap-set-1",
+      "name": "Format Outreach Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [580, 140]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "value": "YOUR_GOOGLE_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Podcast Outreach", "mode": "name" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": ["rss_feed"]
+        }
+      },
+      "id": "ap-sheets-1",
+      "name": "Upsert to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [840, 140],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets"
+        }
+      }
     }
   ],
   "connections": {
-    "Run every morning": {
-      "main": [
-        [
-          {
-            "node": "Run Apple Podcasts Charts & Search Scraper",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Run Apple Podcasts Charts & Search Scraper": {
-      "main": [
-        [
-          {
-            "node": "Send results to webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
+    "Weekly Monday 10 AM": { "main": [[{ "node": "Scrape Apple Podcasts", "type": "main", "index": 0 }]] },
+    "Scrape Apple Podcasts": { "main": [[{ "node": "Keep Shows With Host Email", "type": "main", "index": 0 }]] },
+    "Keep Shows With Host Email": { "main": [[{ "node": "Format Outreach Row", "type": "main", "index": 0 }]] },
+    "Format Outreach Row": { "main": [[{ "node": "Upsert to Google Sheets", "type": "main", "index": 0 }]] }
   },
-  "settings": {
-    "executionOrder": "v1",
-    "availableInMCP": false
-  },
-  "staticData": null,
-  "meta": {
-    "templateCredsSetupCompleted": false
-  },
-  "tags": [
-    "apify",
-    "web-scraping",
-    "apple-podcasts-charts"
-  ]
+  "settings": { "executionOrder": "v1" },
+  "tags": ["apify", "podcasts", "outreach", "lead-generation", "google-sheets"]
 }
